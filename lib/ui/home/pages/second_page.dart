@@ -1,0 +1,62 @@
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+
+class SecondPage extends StatefulWidget {
+  final Function backPressed;
+  final PdfViewerController controller;
+
+  const SecondPage({Key key, this.backPressed, this.controller})
+      : super(key: key);
+
+  @override
+  _SecondPageState createState() => _SecondPageState();
+}
+
+class _SecondPageState extends State<SecondPage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xff356e6e),
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+        title: Text('الرّجُوع إلَى الفَهرَس'),
+        actions: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8.0),
+            child: Transform.rotate(
+              angle: pi,
+              child: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: widget.backPressed,
+              ),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: Colors.white,
+      body: SfPdfViewer.asset(
+        'assets/adhkar.pdf',
+        controller: widget.controller,
+      ),
+      // body: PdfView(
+      //     scrollDirection: Axis.vertical,
+      //     pageSnapping: false,
+      //     documentLoader: Center(child: CircularProgressIndicator()),
+      //     pageLoader: Center(child: CircularProgressIndicator()),
+      //     controller: widget.controller,
+      //     renderer: (PdfPage page) => page.render(
+      //           width: MediaQuery.of(context).size.width.ceil(),
+      //           height: MediaQuery.of(context).size.height.ceil(),
+      //           format: PdfPageFormat.PNG,
+      //           backgroundColor: '#FFFFFF',
+      //         )),
+    );
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+}
