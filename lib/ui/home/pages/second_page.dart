@@ -23,7 +23,14 @@ class _SecondPageState extends State<SecondPage>
         backgroundColor: Color(0xff356e6e),
         automaticallyImplyLeading: false,
         centerTitle: true,
-        title: Text('الرّجُوع إلَى الفَهرَس'),
+        title: Text(
+          'الرّجُوع إلَى الفَهرَس',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 8.0),
@@ -42,18 +49,6 @@ class _SecondPageState extends State<SecondPage>
         'assets/adhkar.pdf',
         controller: widget.controller,
       ),
-      // body: PdfView(
-      //     scrollDirection: Axis.vertical,
-      //     pageSnapping: false,
-      //     documentLoader: Center(child: CircularProgressIndicator()),
-      //     pageLoader: Center(child: CircularProgressIndicator()),
-      //     controller: widget.controller,
-      //     renderer: (PdfPage page) => page.render(
-      //           width: MediaQuery.of(context).size.width.ceil(),
-      //           height: MediaQuery.of(context).size.height.ceil(),
-      //           format: PdfPageFormat.PNG,
-      //           backgroundColor: '#FFFFFF',
-      //         )),
     );
   }
 

@@ -123,21 +123,43 @@ class _FirstPageState extends State<FirstPage>
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text(
-                    'أَذكَار المُسلِم مِن صَحِيح البُخَارِي  وَ مُسلِم',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                          text: "أَذكَار المُسلِم",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontFamily: 'NotoKufiArabic',
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: '\nمِن صَحِيح البُخَارِي وَ مُسلِم',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontFamily: 'NotoKufiArabic',
+                              ),
+                            )
+                          ]),
                     ),
                   ),
+                  // Text(
+                  //   'أَذكَار المُسلِم\nمِن صَحِيح البُخَارِي وَ مُسلِم',
+                  //   textAlign: TextAlign.center,
+                  //   style: TextStyle(
+                  //     fontSize: 14,
+                  //     fontWeight: FontWeight.bold,
+                  //   ),
+                  // ),
                 ),
               ),
               background: Opacity(
                 opacity: 0.4,
                 child: Image.asset(
-                  'assets/images/index.jpg',
-                  fit: BoxFit.cover,
+                  'assets/images/sdsd.jpg',
                 ),
               ),
             ),
