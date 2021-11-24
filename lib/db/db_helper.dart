@@ -38,7 +38,7 @@ class DbHelper {
     return model;
   }
 
-  Future<List<Model>> getAllModels() async {
+  Future<List<Model>> getAllFavoritesModels() async {
     var dbClient = await db;
     List<Map> maps = await dbClient.query(TABLE, columns: [id, name, page]);
     List<Model> models = [];

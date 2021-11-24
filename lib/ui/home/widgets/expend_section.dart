@@ -10,14 +10,17 @@ class ExpandedSection extends StatefulWidget {
   final Function onPressedFavorite;
   final List<Model> object;
   final String path;
+  final bool isColored;
 
-  ExpandedSection(
-      {this.expand = false,
-      this.child,
-      this.onPressed,
-      this.onPressedFavorite,
-      this.object,
-      this.path});
+  ExpandedSection({
+    this.expand = false,
+    this.child,
+    this.onPressed,
+    this.onPressedFavorite,
+    this.object,
+    this.path,
+    this.isColored,
+  });
 
   @override
   _ExpandedSectionState createState() => _ExpandedSectionState();
@@ -95,13 +98,18 @@ class _ExpandedSectionState extends State<ExpandedSection>
                       title: Text(
                         widget.object[index].name,
                         textAlign: TextAlign.right,
-                        style: TextStyle(color: Colors.black, fontSize: 14.0),
+                        style: TextStyle(
+                            color:
+                                widget.isColored ? Colors.white : Colors.black,
+                            fontSize: 14.0),
                       ),
                       leading: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           SvgPicture.asset('assets/images/arrow.svg',
-                              color: Color(0xff356e6e).withOpacity(0.4),
+                              color: widget.isColored
+                                  ? Colors.white
+                                  : Color(0xff356e6e),
                               height: 22),
                           const SizedBox(
                             width: 8.0,
@@ -114,10 +122,15 @@ class _ExpandedSectionState extends State<ExpandedSection>
                                   !widget.object[index].isFavorite;
                             },
                             child: !widget.object[index].isFavorite
-                                ? Image.asset(
-                                    'assets/images/star_gray.png',
-                                    height: 20.0,
-                                  )
+                                ? widget.isColored
+                                    ? Image.asset(
+                                        'assets/images/star_white.png',
+                                        height: 20.0,
+                                      )
+                                    : Image.asset(
+                                        'assets/images/star_gray.png',
+                                        height: 20.0,
+                                      )
                                 : Image.asset(
                                     'assets/images/star_yellow.png',
                                     height: 20.0,
@@ -129,6 +142,9 @@ class _ExpandedSectionState extends State<ExpandedSection>
                     Divider(
                       height: 0,
                       thickness: 0.3,
+                      color: widget.isColored
+                          ? Colors.white.withOpacity(0.5)
+                          : Color(0xff356e6e).withOpacity(0.3),
                     ),
                   ],
                 ),

@@ -2,8 +2,7 @@ import 'package:adhkar_flutter/db/db_helper.dart';
 import 'package:adhkar_flutter/models/model.dart';
 import 'package:adhkar_flutter/models/parent_model.dart';
 import 'package:adhkar_flutter/ui/home/widgets/build_item.dart';
-import 'package:adhkar_flutter/ui/home/widgets/build_item_doaa.dart';
-import 'package:adhkar_flutter/utils/utils.dart';
+import 'package:adhkar_flutter/ui/home/widgets/favorite_widget.dart';
 import 'package:flutter/material.dart';
 
 class FirstPage extends StatefulWidget {
@@ -22,15 +21,30 @@ class _FirstPageState extends State<FirstPage>
   var _currentIndex = 0;
   DbHelper dbHelper;
   List<Model> favoriteModels = [];
+  List<Model> cachedModels = [];
   List<GlobalKey> dataListKey = [];
   bool isFirstTime = false;
+  ScrollController scrollController;
 
   @override
   void initState() {
     dbHelper = DbHelper();
+    scrollController =
+        ScrollController(initialScrollOffset: 0, keepScrollOffset: true);
+    scrollController.addListener(() {
+      if (scrollController.position.atEdge) {
+        if (scrollController.position.pixels < 300) {
+          setState(() {
+            favoriteModels = [];
+            favoriteModels.addAll(cachedModels);
+          });
+        }
+      }
+    });
     Future.delayed(Duration.zero, () async {
-      favoriteModels = await dbHelper.getAllModels();
-      refreshList();
+      widget.parentModels.first.isExpand = true;
+      favoriteModels = await dbHelper.getAllFavoritesModels();
+      await refreshList();
     });
     super.initState();
   }
@@ -39,28 +53,35 @@ class _FirstPageState extends State<FirstPage>
     if (model.id == null) {
       await dbHelper.save(model);
       await refreshList();
+      if (scrollController.position.pixels < 100) {
+        setState(() {
+          favoriteModels = [];
+          favoriteModels.addAll(cachedModels);
+        });
+      }
     }
   }
 
   deleteModel(Model model) async {
     await dbHelper.delete(model.id);
     await refreshList();
+    if (scrollController.position.pixels < 100) {
+      setState(() {
+        favoriteModels = [];
+        favoriteModels.addAll(cachedModels);
+      });
+    }
   }
 
-  List<ParentModel> newParentModels = [];
-  List<Model> newModels = [];
-
   refreshList() async {
-    newModels = [];
-    favoriteModels = [];
-    newParentModels = [];
+    cachedModels = [];
     var isExist = false;
-    favoriteModels = await dbHelper.getAllModels();
-    if (favoriteModels.isNotEmpty) {
+    cachedModels = await dbHelper.getAllFavoritesModels();
+    if (cachedModels.isNotEmpty) {
       for (ParentModel pModel in widget.parentModels) {
         for (Model model in pModel.models) {
           isExist = false;
-          for (Model fModel in favoriteModels) {
+          for (Model fModel in cachedModels) {
             if (model.name == fModel.name && model.page == fModel.page) {
               isExist = true;
               model.isFavorite = true;
@@ -68,171 +89,66 @@ class _FirstPageState extends State<FirstPage>
               break;
             }
           }
-          if (isExist) {
-            newModels.add(model);
-          } else {
+          if (!isExist) {
             model.isFavorite = false;
             model.id = null;
-            newModels.add(model);
           }
         }
-        ParentModel pM =
-            ParentModel(models: newModels, name: pModel.name, id: pModel.id);
-        newParentModels.add(pM);
-        newModels = [];
       }
     } else {
-      newParentModels = [];
       for (ParentModel pModel in widget.parentModels) {
         for (Model model in pModel.models) {
           model.id = null;
           model.isFavorite = false;
-          newModels.add(model);
         }
-        ParentModel pM =
-            ParentModel(models: newModels, name: pModel.name, id: pModel.id);
-        newParentModels.add(pM);
-        newModels = [];
       }
     }
 
-    if (mounted) setState(() {});
     if (!isFirstTime) {
       dataListKey = [];
-      for (var s in newParentModels) {
+      for (var s in widget.parentModels) {
         dataListKey.add(GlobalKey());
       }
       isFirstTime = true;
     }
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    scrollController?.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
+        controller: scrollController,
         slivers: [
-          SliverAppBar(
-            expandedHeight: 170,
-            pinned: true,
-            floating: true,
-            automaticallyImplyLeading: false,
-            backgroundColor: Color(0xff356e6e),
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true,
-              title: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                          text: "أَذكَار المُسلِم",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontFamily: 'NotoKufiArabic',
-                          ),
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: '\nمِن صَحِيح البُخَارِي وَ مُسلِم',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontFamily: 'NotoKufiArabic',
-                              ),
-                            )
-                          ]),
-                    ),
-                  ),
-                  // Text(
-                  //   'أَذكَار المُسلِم\nمِن صَحِيح البُخَارِي وَ مُسلِم',
-                  //   textAlign: TextAlign.center,
-                  //   style: TextStyle(
-                  //     fontSize: 14,
-                  //     fontWeight: FontWeight.bold,
-                  //   ),
-                  // ),
-                ),
-              ),
-              background: Opacity(
-                opacity: 0.4,
-                child: Image.asset(
-                  'assets/images/sdsd.jpg',
-                ),
-              ),
+          _buildHeader(),
+          SliverToBoxAdapter(
+            child: FavoriteWidget(
+              favoriteModels: favoriteModels.reversed.toList(),
+              onPressed: (model) {
+                widget.onPressed(model);
+              },
+              onDelete: (model) {
+                deleteModel(model);
+                favoriteModels.remove(model);
+              },
             ),
           ),
           SliverToBoxAdapter(
-            child: SizedBox(height: 12.0),
+            child: SizedBox(
+              height: 12.0,
+            ),
           ),
-          favoriteModels.isEmpty
-              ? SliverToBoxAdapter(
-                  child: SizedBox.shrink(),
-                )
-              : SliverToBoxAdapter(
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        '${AppUtils.englishToFarsi(number: 'المُفَضّلَة')}',
-                        style: TextStyle(
-                            fontSize: 22.0, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                ),
-          favoriteModels.isEmpty
-              ? SliverToBoxAdapter(
-                  child: SizedBox.shrink(),
-                )
-              : SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      return BuildDoaaWidget(
-                        isFavorite: true,
-                        onRemovePressed: (model) {
-                          deleteModel(model);
-                        },
-                        listSize: favoriteModels.length,
-                        object: favoriteModels[index],
-                        index: index,
-                        onPressed: (object) {
-                          widget.onPressed(object);
-                        },
-                      );
-                    },
-                    childCount: favoriteModels == null ||
-                            favoriteModels.length == null ||
-                            favoriteModels.length == 0
-                        ? 0
-                        : favoriteModels.length,
-                  ),
-                ),
-          favoriteModels.isEmpty
-              ? SliverToBoxAdapter(
-                  child: SizedBox.shrink(),
-                )
-              : SliverToBoxAdapter(
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        '${AppUtils.englishToFarsi(number: 'الفَهرَس')}',
-                        style: TextStyle(
-                            fontSize: 22.0, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                ),
-          newParentModels.isEmpty
+          widget.parentModels.isEmpty || dataListKey.isEmpty
               ? SliverToBoxAdapter(
                   child: Center(
                     child: Padding(
-                      padding: EdgeInsets.only(top: 8.0),
+                      padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
                       child: SizedBox(
                         height: 14,
                         width: 14,
@@ -248,23 +164,45 @@ class _FirstPageState extends State<FirstPage>
                     (context, index) {
                       return BuildItem(
                         key: dataListKey[index],
-                        isVisible: index == _currentIndex ? true : false,
-                        listSize: newParentModels.length,
-                        object: newParentModels[index].models,
-                        parentName: newParentModels[index].name,
+                        listSize: widget.parentModels.length,
+                        object: widget.parentModels[index].models,
+                        parentName: widget.parentModels[index].name,
+                        parentModel: widget.parentModels[index],
                         index: index,
+                        currentIndex: _currentIndex,
                         onPressed: (object) {
                           widget.onPressed(object);
                         },
                         onPressedIndex: (x) {
+                          print(x);
+                          print(_currentIndex);
+                          if (_currentIndex == x) {
+                            setState(() {
+                              widget.parentModels[_currentIndex].isExpand =
+                                  !widget.parentModels[_currentIndex].isExpand;
+                            });
+                            this._currentIndex = x;
+                            return;
+                          }
                           this._currentIndex = x;
-                          // Scrollable.ensureVisible(
-                          //     dataListKey[_currentIndex].currentContext);
-                          setState(() {
-                            WidgetsBinding.instance.addPostFrameCallback((_) =>
-                                Scrollable.ensureVisible(
-                                    dataListKey[_currentIndex].currentContext));
-                          });
+
+                          try {
+                            ParentModel p = widget.parentModels
+                                .firstWhere((element) => element.isExpand);
+                            setState(() {
+                              p.isExpand = false;
+                              widget.parentModels[_currentIndex].isExpand =
+                                  true;
+                            });
+                          } catch (ex) {
+                            setState(() {
+                              widget.parentModels[index].isExpand = true;
+                            });
+                            print(ex);
+                          }
+                          WidgetsBinding.instance.addPostFrameCallback((_) =>
+                              Scrollable.ensureVisible(
+                                  dataListKey[_currentIndex].currentContext));
                         },
                         onPressedFavorite: (object, b) {
                           if (!b)
@@ -274,10 +212,10 @@ class _FirstPageState extends State<FirstPage>
                         },
                       );
                     },
-                    childCount: newParentModels.length,
+                    childCount: widget.parentModels.length,
                     addAutomaticKeepAlives: true,
-                    addRepaintBoundaries: false,
-                    addSemanticIndexes: false,
+                    addRepaintBoundaries: true,
+                    addSemanticIndexes: true,
                   ),
                 ),
           SliverToBoxAdapter(
@@ -285,42 +223,6 @@ class _FirstPageState extends State<FirstPage>
               height: 120.0,
             ),
           ),
-          // SliverToBoxAdapter(
-          //   child: Align(
-          //     alignment: Alignment.center,
-          //     child: Padding(
-          //       padding: EdgeInsets.only(top: 8.0),
-          //       child: Text(
-          //         '${AppUtils.englishToFarsi(number: '( ۲ ) الدعاء')}',
-          //         textAlign: TextAlign.center,
-          //         style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600),
-          //       ),
-          //     ),
-          //   ),
-          // ),
-          // SliverList(
-          //   delegate: SliverChildBuilderDelegate(
-          //     (context, index) {
-          //       return BuildDoaaWidget(
-          //         isFavorite: false,
-          //         onPressedFavorite: (object, b) {
-          //           if (!b)
-          //             insertModel(object);
-          //           else
-          //             deleteModel(object);
-          //         },
-          //         onRemovePressed: () {},
-          //         listSize: widget.doaa.length,
-          //         object: widget.doaa[index],
-          //         index: index,
-          //         onPressed: (object) {
-          //           widget.onPressed(object);
-          //         },
-          //       );
-          //     },
-          //     childCount: widget.doaa.length,
-          //   ),
-          // ),
         ],
       ),
     );
@@ -329,3 +231,55 @@ class _FirstPageState extends State<FirstPage>
   @override
   bool get wantKeepAlive => true;
 }
+
+_buildHeader() => SliverAppBar(
+      expandedHeight: 170,
+      pinned: true,
+      floating: true,
+      automaticallyImplyLeading: false,
+      backgroundColor: Color(0xff356e6e),
+      flexibleSpace: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+        var top = constraints.biggest.height;
+        return FlexibleSpaceBar(
+          centerTitle: true,
+          title: Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                      text: "أَذكَار المُسلِم",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: top < 100 ? 14 : 24,
+                        fontFamily: 'NotoKufiArabic',
+                      ),
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: top < 100
+                              ? ' مِن صَحِيح البُخَارِي وَ مُسلِم'
+                              : '\nمِن صَحِيح البُخَارِي وَ مُسلِم',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontFamily: 'NotoKufiArabic',
+                          ),
+                        )
+                      ]),
+                ),
+              ),
+            ),
+          ),
+          background: Opacity(
+            opacity: 0.4,
+            child: Image.asset(
+              'assets/images/sdsd.jpg',
+            ),
+          ),
+        );
+      }),
+    );

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:adhkar_flutter/models/model.dart';
+import 'package:adhkar_flutter/models/parent_model.dart';
 import 'package:adhkar_flutter/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -12,24 +13,26 @@ class BuildItem extends StatefulWidget {
   final String parentName;
   final String assetPdf;
   final int index;
+  final int currentIndex;
   final Function onPressed;
   final Function onPressedIndex;
   final Function onPressedFavorite;
   final int listSize;
-  final bool isVisible;
+  final ParentModel parentModel;
 
-  BuildItem({
-    Key key,
-    this.object,
-    this.parentName,
-    this.assetPdf,
-    this.index,
-    this.onPressed,
-    this.onPressedIndex,
-    this.onPressedFavorite,
-    this.listSize,
-    this.isVisible,
-  }) : super(key: key);
+  BuildItem(
+      {Key key,
+      this.object,
+      this.parentName,
+      this.assetPdf,
+      this.index,
+      this.currentIndex,
+      this.onPressed,
+      this.onPressedIndex,
+      this.onPressedFavorite,
+      this.listSize,
+      this.parentModel})
+      : super(key: key);
 
   @override
   _BuildItemState createState() => _BuildItemState();
@@ -40,7 +43,7 @@ class _BuildItemState extends State<BuildItem> {
 
   @override
   void initState() {
-    _isVisibleIcon = widget.isVisible;
+    _isVisibleIcon = widget.parentModel.isExpand;
     super.initState();
   }
 
@@ -50,9 +53,11 @@ class _BuildItemState extends State<BuildItem> {
       children: [
         Container(
           padding: EdgeInsets.symmetric(vertical: 11.0, horizontal: 18.0),
-          margin: EdgeInsets.symmetric(vertical: 6.0, horizontal: 22.0),
+          margin: EdgeInsets.symmetric(horizontal: 22.0, vertical: 6.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: widget.index == 0 || widget.index == 16
+                ? Color(0xff356e6e).withOpacity(1)
+                : Colors.white,
             borderRadius: BorderRadius.circular(12.0),
             boxShadow: [
               BoxShadow(
@@ -79,13 +84,20 @@ class _BuildItemState extends State<BuildItem> {
                     children: [
                       SvgPicture.asset(
                         'assets/images/star.svg',
-                        color: Color(0xff356e6e),
+                        color: widget.index == 0 || widget.index == 16
+                            ? Colors.white
+                            : Color(0xff356e6e),
                         height: 35,
                       ),
                       Text(
                         '${AppUtils.englishToFarsi(number: (widget.index + 1).toString())}',
-                        style:
-                            TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: widget.index == 0 || widget.index == 16
+                              ? Colors.white
+                              : Colors.black,
+                        ),
                       ),
                     ],
                   ),
@@ -93,22 +105,29 @@ class _BuildItemState extends State<BuildItem> {
                     widget.parentName,
                     textAlign: TextAlign.right,
                     style: TextStyle(
-                        color: Colors.black,
+                        color: widget.index == 0 || widget.index == 16
+                            ? Colors.white
+                            : Colors.black,
                         fontSize: 14.0,
                         fontWeight: FontWeight.w600),
                   ),
                   leading: Transform.rotate(
                     angle: _isVisibleIcon ? pi : 0,
                     child: SvgPicture.asset('assets/images/arrow_down.svg',
-                        color: Color(0xff356e6e), height: 12),
+                        color: widget.index == 0 || widget.index == 16
+                            ? Colors.white
+                            : Color(0xff356e6e),
+                        height: 12),
                   ),
                 ),
               ),
               SizedBox(height: 0.0),
               Visibility(
-                visible: _isVisibleIcon,
+                visible: widget.parentModel.isExpand,
                 child: ExpandedSection(
-                  expand: _isVisibleIcon,
+                  isColored:
+                      widget.index == 0 || widget.index == 16 ? true : false,
+                  expand: widget.parentModel.isExpand,
                   object: widget.object,
                   path: widget.assetPdf,
                   onPressed: (v) {
