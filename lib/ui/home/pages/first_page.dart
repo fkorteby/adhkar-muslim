@@ -3,7 +3,9 @@ import 'package:adhkar_flutter/models/model.dart';
 import 'package:adhkar_flutter/models/parent_model.dart';
 import 'package:adhkar_flutter/ui/home/widgets/build_item.dart';
 import 'package:adhkar_flutter/ui/home/widgets/favorite_widget.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FirstPage extends StatefulWidget {
   final List<ParentModel> parentModels;
@@ -28,6 +30,11 @@ class _FirstPageState extends State<FirstPage>
 
   @override
   void initState() {
+    try {
+      widget.parentModels.first.isExpand = true;
+    } catch (ex) {
+      print(ex);
+    }
     dbHelper = DbHelper();
     scrollController =
         ScrollController(initialScrollOffset: 0, keepScrollOffset: true);
@@ -42,7 +49,6 @@ class _FirstPageState extends State<FirstPage>
       }
     });
     Future.delayed(Duration.zero, () async {
-      widget.parentModels.first.isExpand = true;
       favoriteModels = await dbHelper.getAllFavoritesModels();
       await refreshList();
     });
@@ -220,7 +226,51 @@ class _FirstPageState extends State<FirstPage>
                 ),
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 120.0,
+              height: 60.0,
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.center,
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                    text: "برمجة وإعداد",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontFamily: 'NotoKufiArabic',
+                      fontWeight: FontWeight.bold,
+                    ),
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: ' البصمات الذكية',
+                        style: TextStyle(
+                          color: Color(0xff356e6e),
+                          fontSize: 16,
+                          fontFamily: 'NotoKufiArabic',
+                          fontWeight: FontWeight.bold,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () =>
+                              _launchURL('https://www.smartprints-ksa.com/'),
+                      ),
+                      TextSpan(
+                        text: ' لتقنية المعلومات',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontFamily: 'NotoKufiArabic',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ]),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 60.0,
             ),
           ),
         ],
@@ -230,6 +280,10 @@ class _FirstPageState extends State<FirstPage>
 
   @override
   bool get wantKeepAlive => true;
+}
+
+void _launchURL(_url) async {
+  if (!await launch(_url)) throw 'Could not launch $_url';
 }
 
 _buildHeader() => SliverAppBar(
@@ -255,8 +309,9 @@ _buildHeader() => SliverAppBar(
                       text: "أَذكَار المُسلِم",
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: top < 100 ? 14 : 24,
+                        fontSize: top < 100 ? 16 : 24,
                         fontFamily: 'NotoKufiArabic',
+                        fontWeight: FontWeight.bold,
                       ),
                       children: <TextSpan>[
                         TextSpan(
@@ -265,8 +320,9 @@ _buildHeader() => SliverAppBar(
                               : '\nمِن صَحِيح البُخَارِي وَ مُسلِم',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: top < 100 ? 16 : 12,
                             fontFamily: 'NotoKufiArabic',
+                            fontWeight: FontWeight.bold,
                           ),
                         )
                       ]),
@@ -277,7 +333,7 @@ _buildHeader() => SliverAppBar(
           background: Opacity(
             opacity: 0.4,
             child: Image.asset(
-              'assets/images/sdsd.jpg',
+              'assets/images/background.jpg',
             ),
           ),
         );

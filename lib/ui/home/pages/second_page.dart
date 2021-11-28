@@ -27,7 +27,7 @@ class _SecondPageState extends State<SecondPage>
           'الرّجُوع إلَى الفَهرَس',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),

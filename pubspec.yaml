@@ -17,6 +17,7 @@ dependencies:
   equatable:
   sqflite: ^1.3.2+4
   syncfusion_flutter_pdfviewer: ^18.4.49-beta
+  url_launcher: ^5.7.10
 
   cupertino_icons: ^1.0.0
 
