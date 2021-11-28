@@ -1,10 +1,12 @@
 import 'package:adhkar_flutter/db/db_helper.dart';
 import 'package:adhkar_flutter/models/model.dart';
 import 'package:adhkar_flutter/models/parent_model.dart';
+import 'package:adhkar_flutter/ui/home/bloc/home_bloc.dart';
 import 'package:adhkar_flutter/ui/home/widgets/build_item.dart';
 import 'package:adhkar_flutter/ui/home/widgets/favorite_widget.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class FirstPage extends StatefulWidget {
@@ -21,103 +23,59 @@ class FirstPage extends StatefulWidget {
 class _FirstPageState extends State<FirstPage>
     with AutomaticKeepAliveClientMixin {
   var _currentIndex = 0;
-  DbHelper dbHelper;
   List<Model> favoriteModels = [];
-  List<Model> cachedModels = [];
+  List<ParentModel> parentModels = [];
   List<GlobalKey> dataListKey = [];
-  bool isFirstTime = false;
   ScrollController scrollController;
+  var _bloc;
 
   @override
   void initState() {
+    initData();
+    initController();
+    populateListKey();
+    super.initState();
+  }
+
+  initData() {
     try {
-      widget.parentModels.first.isExpand = true;
+      parentModels = widget.parentModels;
+      parentModels.first.isExpand = true;
     } catch (ex) {
       print(ex);
     }
-    dbHelper = DbHelper();
+  }
+
+  initController() {
     scrollController =
         ScrollController(initialScrollOffset: 0, keepScrollOffset: true);
     scrollController.addListener(() {
       if (scrollController.position.atEdge) {
         if (scrollController.position.pixels < 300) {
-          setState(() {
-            favoriteModels = [];
-            favoriteModels.addAll(cachedModels);
-          });
+          getFavoriteItems();
         }
       }
     });
+  }
+
+  void populateListKey() {
+    dataListKey = [];
+    for (var s in parentModels) {
+      dataListKey.add(GlobalKey());
+    }
+  }
+
+  void getFavoriteItems() {
     Future.delayed(Duration.zero, () async {
-      favoriteModels = await dbHelper.getAllFavoritesModels();
-      await refreshList();
+      favoriteModels = await DbHelper.instance.getAllFavoritesModels();
+      if (mounted) setState(() {});
     });
-    super.initState();
   }
 
-  insertModel(Model model) async {
-    if (model.id == null) {
-      await dbHelper.save(model);
-      await refreshList();
-      if (scrollController.position.pixels < 100) {
-        setState(() {
-          favoriteModels = [];
-          favoriteModels.addAll(cachedModels);
-        });
-      }
-    }
-  }
-
-  deleteModel(Model model) async {
-    await dbHelper.delete(model.id);
-    await refreshList();
+  void refreshFavoriteItemsList() {
     if (scrollController.position.pixels < 100) {
-      setState(() {
-        favoriteModels = [];
-        favoriteModels.addAll(cachedModels);
-      });
+      getFavoriteItems();
     }
-  }
-
-  refreshList() async {
-    cachedModels = [];
-    var isExist = false;
-    cachedModels = await dbHelper.getAllFavoritesModels();
-    if (cachedModels.isNotEmpty) {
-      for (ParentModel pModel in widget.parentModels) {
-        for (Model model in pModel.models) {
-          isExist = false;
-          for (Model fModel in cachedModels) {
-            if (model.name == fModel.name && model.page == fModel.page) {
-              isExist = true;
-              model.isFavorite = true;
-              model.id = fModel.id;
-              break;
-            }
-          }
-          if (!isExist) {
-            model.isFavorite = false;
-            model.id = null;
-          }
-        }
-      }
-    } else {
-      for (ParentModel pModel in widget.parentModels) {
-        for (Model model in pModel.models) {
-          model.id = null;
-          model.isFavorite = false;
-        }
-      }
-    }
-
-    if (!isFirstTime) {
-      dataListKey = [];
-      for (var s in widget.parentModels) {
-        dataListKey.add(GlobalKey());
-      }
-      isFirstTime = true;
-    }
-    if (mounted) setState(() {});
   }
 
   @override
@@ -127,159 +85,151 @@ class _FirstPageState extends State<FirstPage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        controller: scrollController,
-        slivers: [
-          _buildHeader(),
-          SliverToBoxAdapter(
-            child: FavoriteWidget(
-              favoriteModels: favoriteModels.reversed.toList(),
-              onPressed: (model) {
-                widget.onPressed(model);
-              },
-              onDelete: (model) {
-                deleteModel(model);
-                favoriteModels.remove(model);
-              },
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 12.0,
-            ),
-          ),
-          widget.parentModels.isEmpty || dataListKey.isEmpty
-              ? SliverToBoxAdapter(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
-                      child: SizedBox(
-                        height: 14,
-                        width: 14,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-              : SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      return BuildItem(
-                        key: dataListKey[index],
-                        listSize: widget.parentModels.length,
-                        object: widget.parentModels[index].models,
-                        parentName: widget.parentModels[index].name,
-                        parentModel: widget.parentModels[index],
-                        index: index,
-                        currentIndex: _currentIndex,
-                        onPressed: (object) {
-                          widget.onPressed(object);
-                        },
-                        onPressedIndex: (x) {
-                          print(x);
-                          print(_currentIndex);
-                          if (_currentIndex == x) {
-                            setState(() {
-                              widget.parentModels[_currentIndex].isExpand =
-                                  !widget.parentModels[_currentIndex].isExpand;
-                            });
-                            this._currentIndex = x;
-                            return;
-                          }
-                          this._currentIndex = x;
+  Widget build(BuildContext context) => Scaffold(
+        body: BlocProvider<HomeBloc>(
+          create: (context) =>
+              HomeBloc()..add(GetFavoriteItems(context, parentModels)),
+          lazy: false,
+          child: BlocListener<HomeBloc, HomeState>(
+            listener: (context, state) {
+              if (state is GetFavoriteItemsSuccess) {
+                favoriteModels = state.favoriteItems;
+                parentModels = state.parentModel;
+              }
 
-                          try {
-                            ParentModel p = widget.parentModels
-                                .firstWhere((element) => element.isExpand);
-                            setState(() {
-                              p.isExpand = false;
-                              widget.parentModels[_currentIndex].isExpand =
-                                  true;
-                            });
-                          } catch (ex) {
-                            setState(() {
-                              widget.parentModels[index].isExpand = true;
-                            });
-                            print(ex);
-                          }
-                          WidgetsBinding.instance.addPostFrameCallback((_) =>
-                              Scrollable.ensureVisible(
-                                  dataListKey[_currentIndex].currentContext));
-                        },
-                        onPressedFavorite: (object, b) {
-                          if (!b)
-                            insertModel(object);
-                          else
-                            deleteModel(object);
-                        },
-                      );
-                    },
-                    childCount: widget.parentModels.length,
-                    addAutomaticKeepAlives: true,
-                    addRepaintBoundaries: true,
-                    addSemanticIndexes: true,
+              if (state is InsertSuccess) {
+                parentModels = state.parentModel;
+                refreshFavoriteItemsList();
+              }
+
+              if (state is DeleteSuccess) {
+                parentModels = state.parentModel;
+                refreshFavoriteItemsList();
+              }
+
+              if (state is Failed) {
+                Scaffold.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: Colors.red.withOpacity(0.4),
+                    content: Text(state.msg),
                   ),
-                ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 20.0,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Align(
-              alignment: Alignment.center,
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                    text: "برمجة وإعداد",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 12,
-                      fontFamily: 'NotoKufiArabic',
-                      fontWeight: FontWeight.bold,
+                );
+              }
+            },
+            child: BlocBuilder<HomeBloc, HomeState>(
+              builder: (context, state) {
+                return CustomScrollView(
+                  controller: scrollController,
+                  slivers: [
+                    _buildHeader(),
+                    favoriteModels.isEmpty
+                        ? SliverToBoxAdapter(
+                            child: SizedBox.shrink(),
+                          )
+                        : SliverToBoxAdapter(
+                            child: FavoriteWidget(
+                              favoriteModels: favoriteModels.reversed.toList(),
+                              onPressed: (model) {
+                                widget.onPressed(model);
+                              },
+                              onDelete: (model) {
+                                if (_bloc == null)
+                                  _bloc = BlocProvider.of<HomeBloc>(context);
+                                _bloc.add(
+                                    DeleteItem(context, model, parentModels));
+                                favoriteModels.remove(model);
+                              },
+                            ),
+                          ),
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 12.0,
+                      ),
                     ),
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: ' البصمات الذكية',
-                        style: TextStyle(
-                          color: Color(0xff356e6e),
-                          fontSize: 14,
-                          fontFamily: 'NotoKufiArabic',
-                          fontWeight: FontWeight.bold,
-                        ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () =>
-                              _launchURL('https://www.smartprints-ksa.com/'),
+                    parentModels.isEmpty || dataListKey.isEmpty
+                        ? _buildLoading()
+                        : SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                return BuildItem(
+                                  key: dataListKey[index],
+                                  object: parentModels[index].models,
+                                  parentName: parentModels[index].name,
+                                  parentModel: parentModels[index],
+                                  index: index,
+                                  onPressed: (object) {
+                                    widget.onPressed(object);
+                                  },
+                                  onPressedIndex: (x) =>
+                                      onPressedItem(x, index),
+                                  onPressedFavorite: (object, b) {
+                                    if (_bloc == null)
+                                      _bloc =
+                                          BlocProvider.of<HomeBloc>(context);
+                                    if (!b)
+                                      _bloc.add(InsertNewItem(
+                                          context, object, parentModels));
+                                    else
+                                      _bloc.add(DeleteItem(
+                                          context, object, parentModels));
+                                  },
+                                );
+                              },
+                              childCount: parentModels.length,
+                              addAutomaticKeepAlives: true,
+                              addRepaintBoundaries: true,
+                              addSemanticIndexes: true,
+                            ),
+                          ),
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 20.0,
                       ),
-                      TextSpan(
-                        text: ' لتقنية المعلومات',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 12,
-                          fontFamily: 'NotoKufiArabic',
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    _buildFooter(),
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 20.0,
                       ),
-                    ]),
-              ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 20.0,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      );
 
   @override
   bool get wantKeepAlive => true;
+
+  void onPressedItem(x, index) {
+    if (_currentIndex == x) {
+      setState(() {
+        parentModels[_currentIndex].isExpand =
+            !parentModels[_currentIndex].isExpand;
+      });
+      this._currentIndex = x;
+      return;
+    }
+    // if the currentIndex != index
+    this._currentIndex = x;
+    try {
+      ParentModel p = parentModels.firstWhere((element) => element.isExpand);
+      setState(() {
+        p.isExpand = false;
+        parentModels[_currentIndex].isExpand = true;
+      });
+    } catch (ex) {
+      setState(() {
+        parentModels[index].isExpand = true;
+      });
+      print(ex);
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) =>
+        Scrollable.ensureVisible(dataListKey[_currentIndex].currentContext));
+  }
 }
 
 void _launchURL(_url) async {
@@ -338,4 +288,59 @@ _buildHeader() => SliverAppBar(
           ),
         );
       }),
+    );
+
+_buildFooter() => SliverToBoxAdapter(
+      child: Align(
+        alignment: Alignment.center,
+        child: RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+              text: "برمجة وإعداد",
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 12,
+                fontFamily: 'NotoKufiArabic',
+                fontWeight: FontWeight.bold,
+              ),
+              children: <TextSpan>[
+                TextSpan(
+                  text: ' البصمات الذكية',
+                  style: TextStyle(
+                    color: Color(0xff356e6e),
+                    fontSize: 14,
+                    fontFamily: 'NotoKufiArabic',
+                    fontWeight: FontWeight.bold,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap =
+                        () => _launchURL('https://www.smartprints-ksa.com/'),
+                ),
+                TextSpan(
+                  text: ' لتقنية المعلومات',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 12,
+                    fontFamily: 'NotoKufiArabic',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ]),
+        ),
+      ),
+    );
+
+_buildLoading() => SliverToBoxAdapter(
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
+          child: SizedBox(
+            height: 14,
+            width: 14,
+            child: CircularProgressIndicator(
+              strokeWidth: 1,
+            ),
+          ),
+        ),
+      ),
     );

@@ -1,22 +1,34 @@
 part of 'home_bloc.dart';
 
-abstract class HomeEvent extends Equatable {
+abstract class HomeEvent {
   const HomeEvent();
-
-  @override
-  List<Object> get props => [];
 }
 
 class GetData extends HomeEvent {
   final BuildContext context;
+
   GetData({@required this.context});
-  @override
-  List<Object> get props => null;
 }
 
-class GetPdf extends HomeEvent {
+class GetFavoriteItems extends HomeEvent {
   final BuildContext context;
-  GetPdf({@required this.context});
-  @override
-  List<Object> get props => null;
+  final List<ParentModel> parentModels;
+
+  GetFavoriteItems(this.context, this.parentModels);
+}
+
+class InsertNewItem extends HomeEvent {
+  final BuildContext context;
+  final Model model;
+  final List<ParentModel> parentModels;
+
+  InsertNewItem(this.context, this.model, this.parentModels);
+}
+
+class DeleteItem extends HomeEvent {
+  final BuildContext context;
+  final Model model;
+  final List<ParentModel> parentModels;
+
+  DeleteItem(this.context, this.model, this.parentModels);
 }

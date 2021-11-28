@@ -9,7 +9,6 @@ class ExpandedSection extends StatefulWidget {
   final Function onPressed;
   final Function onPressedFavorite;
   final List<Model> object;
-  final String path;
   final bool isColored;
 
   ExpandedSection({
@@ -18,7 +17,6 @@ class ExpandedSection extends StatefulWidget {
     this.onPressed,
     this.onPressedFavorite,
     this.object,
-    this.path,
     this.isColored,
   });
 

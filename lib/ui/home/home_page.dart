@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
+/*
+ * Home Page
+*/
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key key}) : super(key: key);
 
@@ -17,7 +20,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // var list = [];
   List<ParentModel> parentModels = [];
   var _isLoading = false;
   PdfViewerController controller;
@@ -27,6 +29,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+    /*
+      Init controller and pageView Controller
+    */
     controller = PdfViewerController();
     pageController = PageController(
       initialPage: _currentPage,
@@ -40,9 +45,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return WillPopScope(
       onWillPop: () {
         if (_currentPage == 0)
+          // back to Index page
           pageController.animateToPage(1,
               duration: Duration(milliseconds: 150), curve: Curves.easeIn);
         else
+          // close the app
           exit(0);
         return;
       },
@@ -52,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
           create: (context) => HomeBloc()..add(GetData(context: context)),
           child: BlocListener<HomeBloc, HomeState>(
             listener: (context, state) {
-              if (state is Loading) _isLoading = !_isLoading;
+              if (state is Loading) _isLoading = true;
               if (state is Success) {
                 parentModels = state.parentModels;
                 pageController.animateToPage(0,
@@ -62,11 +69,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   pageController.animateToPage(1,
                       duration: Duration(milliseconds: 150),
                       curve: Curves.easeIn);
-                  _isLoading = !_isLoading;
+                  _isLoading = false;
                 });
               }
               if (state is Failed) {
-                _isLoading = !_isLoading;
+                _isLoading = false;
                 Scaffold.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: Colors.red.withOpacity(0.4),

@@ -1,63 +1,42 @@
 part of 'home_bloc.dart';
 
-abstract class HomeState extends Equatable {
+abstract class HomeState {
   const HomeState();
-
-  @override
-  List<Object> get props => [];
 }
 
 class HomeInitial extends HomeState {}
 
-class Loading extends HomeState {
-  @override
-  List<Object> get props => null;
-}
+class Loading extends HomeState {}
 
 class Success extends HomeState {
-  final dynamic data;
   final List<ParentModel> parentModels;
-  final dynamic doaa;
-  final File file;
 
-  Success({this.data, this.parentModels, this.file, this.doaa});
-
-  @override
-  List<Object> get props => null;
-}
-
-class SuccessDoaa extends HomeState {
-  final List<Model> models;
-
-  SuccessDoaa({this.models});
-
-  @override
-  List<Object> get props => null;
+  Success({
+    this.parentModels,
+  });
 }
 
 class Failed extends HomeState {
   final String msg;
 
   Failed({this.msg});
-
-  @override
-  List<Object> get props => null;
 }
 
-class PdfSuccess extends HomeState {
-  final File file;
+class GetFavoriteItemsSuccess extends HomeState {
+  final List<Model> favoriteItems;
+  final List<ParentModel> parentModel;
 
-  PdfSuccess({this.file});
-
-  @override
-  List<Object> get props => null;
+  GetFavoriteItemsSuccess(this.parentModel, this.favoriteItems);
 }
 
-class PdfFailed extends HomeState {
-  final String msg;
+class InsertSuccess extends HomeState {
+  final List<ParentModel> parentModel;
 
-  PdfFailed({this.msg});
+  InsertSuccess(this.parentModel);
+}
 
-  @override
-  List<Object> get props => null;
+class DeleteSuccess extends HomeState {
+  final List<ParentModel> parentModel;
+
+  DeleteSuccess(this.parentModel);
 }

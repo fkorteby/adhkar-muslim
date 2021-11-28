@@ -11,26 +11,20 @@ import 'expend_section.dart';
 class BuildItem extends StatefulWidget {
   final List<Model> object;
   final String parentName;
-  final String assetPdf;
   final int index;
-  final int currentIndex;
   final Function onPressed;
   final Function onPressedIndex;
   final Function onPressedFavorite;
-  final int listSize;
   final ParentModel parentModel;
 
   BuildItem(
       {Key key,
       this.object,
       this.parentName,
-      this.assetPdf,
       this.index,
-      this.currentIndex,
       this.onPressed,
       this.onPressedIndex,
       this.onPressedFavorite,
-      this.listSize,
       this.parentModel})
       : super(key: key);
 
@@ -129,7 +123,6 @@ class _BuildItemState extends State<BuildItem> {
                       widget.index == 0 || widget.index == 16 ? true : false,
                   expand: widget.parentModel.isExpand,
                   object: widget.object,
-                  path: widget.assetPdf,
                   onPressed: (v) {
                     widget.onPressed(v);
                   },

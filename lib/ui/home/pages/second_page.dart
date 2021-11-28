@@ -3,6 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
+/*
+  * Second page to display the pdf
+*/
+
 class SecondPage extends StatefulWidget {
   final Function backPressed;
   final PdfViewerController controller;

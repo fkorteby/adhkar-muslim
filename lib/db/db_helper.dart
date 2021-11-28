@@ -13,6 +13,8 @@ class DbHelper {
   static const String page = 'page';
   static const String TABLE = 'Favorite';
   static const String DB_NAME = 'adhkar.db';
+  DbHelper._privateConstructor();
+  static final DbHelper instance = DbHelper._privateConstructor();
 
   Future<Database> get db async {
     if (_db != null) return _db;
