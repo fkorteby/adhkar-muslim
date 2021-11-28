@@ -226,7 +226,7 @@ class _FirstPageState extends State<FirstPage>
                 ),
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 60.0,
+              height: 20.0,
             ),
           ),
           SliverToBoxAdapter(
@@ -238,7 +238,7 @@ class _FirstPageState extends State<FirstPage>
                     text: "برمجة وإعداد",
                     style: TextStyle(
                       color: Colors.black,
-                      fontSize: 14,
+                      fontSize: 12,
                       fontFamily: 'NotoKufiArabic',
                       fontWeight: FontWeight.bold,
                     ),
@@ -247,7 +247,7 @@ class _FirstPageState extends State<FirstPage>
                         text: ' البصمات الذكية',
                         style: TextStyle(
                           color: Color(0xff356e6e),
-                          fontSize: 16,
+                          fontSize: 14,
                           fontFamily: 'NotoKufiArabic',
                           fontWeight: FontWeight.bold,
                         ),
@@ -259,7 +259,7 @@ class _FirstPageState extends State<FirstPage>
                         text: ' لتقنية المعلومات',
                         style: TextStyle(
                           color: Colors.black,
-                          fontSize: 14,
+                          fontSize: 12,
                           fontFamily: 'NotoKufiArabic',
                           fontWeight: FontWeight.bold,
                         ),
@@ -270,7 +270,7 @@ class _FirstPageState extends State<FirstPage>
           ),
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 60.0,
+              height: 20.0,
             ),
           ),
         ],
