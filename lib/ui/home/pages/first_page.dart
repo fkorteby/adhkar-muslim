@@ -37,6 +37,7 @@ class _FirstPageState extends State<FirstPage>
     super.initState();
   }
 
+  // retrieve parent models
   initData() {
     try {
       parentModels = widget.parentModels;
@@ -65,6 +66,7 @@ class _FirstPageState extends State<FirstPage>
     }
   }
 
+  // retrieve favorite models from database
   void getFavoriteItems() {
     Future.delayed(Duration.zero, () async {
       favoriteModels = await DbHelper.instance.getAllFavoritesModels();
@@ -93,21 +95,26 @@ class _FirstPageState extends State<FirstPage>
           child: BlocListener<HomeBloc, HomeState>(
             listener: (context, state) {
               if (state is GetFavoriteItemsSuccess) {
+                // retrieve favorite models from database
                 favoriteModels = state.favoriteItems;
+                // update parentModels list
                 parentModels = state.parentModel;
               }
 
               if (state is InsertSuccess) {
+                // update parentModels list
                 parentModels = state.parentModel;
                 refreshFavoriteItemsList();
               }
 
               if (state is DeleteSuccess) {
+                // update parentModels list
                 parentModels = state.parentModel;
                 refreshFavoriteItemsList();
               }
 
               if (state is Failed) {
+                // show SnackBar
                 Scaffold.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: Colors.red.withOpacity(0.4),
@@ -133,10 +140,12 @@ class _FirstPageState extends State<FirstPage>
                                 widget.onPressed(model);
                               },
                               onDelete: (model) {
+                                // delete favorite item from database
                                 if (_bloc == null)
                                   _bloc = BlocProvider.of<HomeBloc>(context);
                                 _bloc.add(
                                     DeleteItem(context, model, parentModels));
+                                // delete favorite item from list
                                 favoriteModels.remove(model);
                               },
                             ),

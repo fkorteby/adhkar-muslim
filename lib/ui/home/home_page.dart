@@ -61,19 +61,20 @@ class _HomeScreenState extends State<HomeScreen> {
             listener: (context, state) {
               if (state is Loading) _isLoading = true;
               if (state is Success) {
+                // retrieve parent models from asset
                 parentModels = state.parentModels;
                 pageController.animateToPage(0,
-                    duration: Duration(milliseconds: 150),
-                    curve: Curves.easeIn);
+                    duration: Duration(milliseconds: 10), curve: Curves.easeIn);
                 Future.delayed(Duration.zero, () {
                   pageController.animateToPage(1,
-                      duration: Duration(milliseconds: 150),
+                      duration: Duration(milliseconds: 10),
                       curve: Curves.easeIn);
                   _isLoading = false;
                 });
               }
               if (state is Failed) {
                 _isLoading = false;
+                // show SnackBar
                 Scaffold.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: Colors.red.withOpacity(0.4),
@@ -96,6 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: SecondPage(
                         controller: controller,
                         backPressed: () {
+                          // back to index page
                           pageController.animateToPage(1,
                               duration: Duration(milliseconds: 150),
                               curve: Curves.easeIn);
@@ -108,6 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             parentModels: parentModels,
                             onPressed: (Model model) {
                               setState(() {
+                                // going to pdf page with page number
                                 pageController.animateToPage(
                                   0,
                                   duration: Duration(milliseconds: 150),
