@@ -6,9 +6,7 @@
 
 ## Screenshots
 
-<img src="https://github.com/fkorteby/adhkar-muslim/blob/main/Home.png" alt="drawing" width="200" style="float:left;"/>
-<img src="https://github.com/fkorteby/adhkar-muslim/blob/main/Cover.png" alt="drawing" width="200" style="float:left;"/>
-<img src="https://github.com/fkorteby/adhkar-muslim/blob/main/Book-cover.png" alt="drawing" width="200" style="float:left;"/>
+|<img src="https://github.com/fkorteby/adhkar-muslim/blob/main/Home.png" alt="drawing" width="200" style="float:left;"/>|<img src="https://github.com/fkorteby/adhkar-muslim/blob/main/Cover.png" alt="drawing" width="200" style="float:left;"/>|<img src="https://github.com/fkorteby/adhkar-muslim/blob/main/Book-cover.png" alt="drawing" width="200" style="float:left;"/>|
 
 
 ## Credits
